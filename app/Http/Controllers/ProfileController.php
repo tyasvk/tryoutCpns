@@ -17,12 +17,22 @@ class ProfileController extends Controller
      * Display the user's profile form.
      */
     public function edit(Request $request): Response
-    {
-        return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
-        ]);
-    }
+{
+    $user = $request->user();
+    
+    // Ambil statistik pengerjaan untuk ditampilkan di profil
+    $stats = [
+        'total_exams' => \App\Models\Exam::where('user_id', $user->id)->count(),
+        'highest_score' => \App\Models\Exam::where('user_id', $user->id)->max('total_score') ?? 0,
+        'passed_count' => \App\Models\Exam::where('user_id', $user->id)->where('is_passed', true)->count(),
+    ];
+
+    return Inertia::render('Profile/Edit', [
+        'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+        'status' => session('status'),
+        'stats' => $stats,
+    ]);
+}
 
     /**
      * Update the user's profile information.

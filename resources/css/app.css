@@ -1,3 +1,79 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* -------------------------------------------------------------------------- */
+/* 1. SETUP STANDAR (NORMAL SIZE)                                             */
+/* -------------------------------------------------------------------------- */
+
+/* Kita hapus pengaturan font-size custom tadi. 
+   Sekarang kembali ke default Tailwind (1rem = 16px).
+   Tampilan akan terbaca jelas dan normal. */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-indigo-100 selection:text-indigo-700;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2. CUSTOM SCROLLBAR (Tetap kita pertahankan agar rapi)                     */
+/* -------------------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+    width: 6px; /* Sedikit diperlebar dari 5px agar lebih mudah disentuh */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+}
+
+/* Firefox support */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. MOBILE UX (Tetap Mobile Friendly)                                       */
+/* -------------------------------------------------------------------------- */
+
+/* Menghilangkan highlight biru saat tap di HP */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mencegah Zoom Otomatis di iPhone saat klik Input */
+@media (max-width: 640px) {
+    input, textarea, select {
+        font-size: 16px !important; /* Wajib 16px agar iOS tidak auto-zoom */
+    }
+}
+
+/* Utility menyembunyikan scrollbar (untuk navigasi nomor soal) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. TYPOGRAPHY                                                              */
+/* -------------------------------------------------------------------------- */
+
+/* Tracking normal saja agar mudah dibaca */
+h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight font-bold;
+}
+
+button, a {
+    @apply transition-all duration-200 ease-in-out;
+}

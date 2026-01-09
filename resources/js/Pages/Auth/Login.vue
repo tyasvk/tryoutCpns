@@ -1,130 +1,38 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import Checkbox from '@/Components/Checkbox.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import TextInput from '@/Components/TextInput.vue';
 
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
-
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
-
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
-};
+const form = useForm({ email: '', password: '', remember: false });
+const submit = () => form.post(route('login'), { onFinish: () => form.reset('password') });
 </script>
 
 <template>
-    <Head title="Masuk ke Akun" />
-
-    <div class="min-h-screen bg-slate-50 flex flex-col justify-center py-8 px-4 sm:px-6 relative overflow-hidden">
-        <div class="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-indigo-100/50 blur-[100px]"></div>
-        <div class="absolute bottom-0 left-0 w-[30%] h-[30%] rounded-full bg-blue-100/50 blur-[100px]"></div>
-
-        <div class="w-full max-w-[440px] mx-auto relative z-10">
-            <div class="text-center mb-8">
-                <Link href="/" class="inline-flex items-center gap-2 mb-4 group">
-                    <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 group-hover:rotate-6 transition-transform">
-                        <span class="text-white font-black text-2xl">T</span>
-                    </div>
-                </Link>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Selamat Datang</h2>
-                <p class="text-slate-500 mt-2 font-medium">Masuk untuk melanjutkan latihan soal</p>
+    <Head title="Masuk Akun" />
+    <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4 lg:p-8">
+        <div class="w-full max-w-5xl bg-white rounded-[3rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 border border-slate-100">
+            <div class="bg-slate-900 p-12 lg:p-16 text-white relative overflow-hidden flex flex-col justify-between min-h-[300px] lg:min-h-full">
+                <div class="relative z-10">
+                    <Link href="/" class="text-xl lg:text-2xl font-black italic tracking-tighter uppercase mb-10 block">CPNS Nusantara<span class="text-indigo-400">.</span></Link>
+                    <h2 class="text-4xl lg:text-5xl font-black italic tracking-tighter leading-none mb-4">Gerbang Karir ASN Anda.</h2>
+                    <p class="text-slate-400 text-sm lg:text-base font-medium max-w-sm italic">Masuk dan lanjutkan perjuanganmu membangun negeri bersama CPNS Nusantara.</p>
+                </div>
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-indigo-600/30 rounded-full blur-[100px]"></div>
             </div>
 
-            <div v-if="status" class="mb-4 font-medium text-sm text-green-600 bg-green-50 p-4 rounded-2xl border border-green-100">
-                {{ status }}
-            </div>
-
-            <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white">
+            <div class="p-10 lg:p-16 flex flex-col justify-center">
+                <h3 class="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-8">Akses Akun</h3>
                 <form @submit.prevent="submit" class="space-y-6">
                     <div>
-                        <InputLabel for="email" value="Email" class="text-xs uppercase tracking-widest font-bold text-slate-400 ml-1" />
-                        <TextInput
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                            placeholder="nama@email.com"
-                            required
-                            autofocus
-                            autocomplete="username"
-                        />
-                        <InputError class="mt-2" :message="form.errors.email" />
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Email Address</label>
+                        <input type="email" v-model="form.email" class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold focus:ring-2 focus:ring-indigo-500" placeholder="nama@email.com" />
                     </div>
-
                     <div>
-                        <div class="flex justify-between items-center ml-1">
-                            <InputLabel for="password" value="Password" class="text-xs uppercase tracking-widest font-bold text-slate-400" />
-                            <Link
-                                v-if="canResetPassword"
-                                :href="route('password.request')"
-                                class="text-xs font-bold text-indigo-600 hover:text-indigo-500"
-                            >
-                                Lupa?
-                            </Link>
-                        </div>
-                        <TextInput
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                            placeholder="••••••••"
-                            required
-                            autocomplete="current-password"
-                        />
-                        <InputError class="mt-2" :message="form.errors.password" />
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Password</label>
+                        <input type="password" v-model="form.password" class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold focus:ring-2 focus:ring-indigo-500" placeholder="••••••••" />
                     </div>
-
-                    <div class="flex items-center ml-1">
-                        <label class="flex items-center cursor-pointer group">
-                            <Checkbox name="remember" v-model:checked="form.remember" class="!rounded-md border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500" />
-                            <span class="ml-2 text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Ingat saya di perangkat ini</span>
-                        </label>
-                    </div>
-
-                    <div class="pt-2">
-                        <button 
-                            type="submit" 
-                            :disabled="form.processing"
-                            class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50"
-                        >
-                            Masuk Sekarang
-                        </button>
-                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white py-5 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95">Masuk Sekarang</button>
+                    <p class="text-center text-sm font-bold text-slate-500 mt-6">Belum punya akun? <Link :href="route('register')" class="text-indigo-600 font-black uppercase hover:underline">Daftar Gratis</Link></p>
                 </form>
-
-                <div class="mt-10 text-center border-t border-slate-100 pt-8">
-                    <p class="text-slate-500 text-sm">
-                        Belum punya akun? 
-                        <Link :href="route('register')" class="text-indigo-600 font-bold hover:underline ml-1">Daftar Akun Gratis</Link>
-                    </p>
-                </div>
             </div>
         </div>
-
-        <p class="mt-8 text-center text-slate-400 text-xs relative z-10 font-medium">
-            &copy; 2026 TryoutCPNS System. Secured by Laravel.
-        </p>
     </div>
 </template>
-
-<style scoped>
-/* Menghilangkan ring biru default browser agar konsisten dengan fokus indigo kita */
-input:focus {
-    outline: none;
-}
-</style>

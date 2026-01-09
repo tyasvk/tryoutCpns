@@ -6,47 +6,88 @@ use App\Http\Controllers\Controller;
 use App\Models\Tryout;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class TryoutController extends Controller
 {
-    public function index()
+    /**
+     * Menampilkan daftar semua paket tryout.
+     */
+    public function index(): Response
     {
         return Inertia::render('Admin/Tryouts/Index', [
-            'tryouts' => Tryout::latest()->get()
+            // withCount('questions') sangat penting agar data questions_count muncul di Vue
+            'tryouts' => Tryout::withCount('questions')->latest()->get()
         ]);
     }
 
-    public function store(Request $request)
+    /**
+     * Menampilkan form pembuatan paket baru.
+     */
+    public function create(): Response
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'duration' => 'required|integer|min:1',
-            'is_free' => 'required|boolean',
-            'price' => 'required_if:is_free,false|numeric|min:0',
-        ]);
-
-        Tryout::create($validated);
-
-        return back()->with('message', 'Paket Tryout berhasil dibuat!');
+        return Inertia::render('Admin/Tryouts/Create');
     }
 
+    /**
+     * Menyimpan paket tryout baru ke database.
+     */
+    public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'type' => 'required|in:free,paid,grand_to',
+        'duration' => 'required|integer|min:1',
+        'description' => 'nullable|string',
+        'price' => 'required_if:type,paid,grand_to|integer|min:0',
+        'start_at' => 'required_if:type,grand_to|nullable|date',
+        'end_at' => 'required_if:type,grand_to|nullable|date|after:start_at',
+        'is_published' => 'boolean',
+    ]);
+
+    Tryout::create($validated);
+
+    return redirect()->route('admin.tryouts.index')
+        ->with('message', 'Paket Tryout berhasil dibuat!');
+}
+
+    /**
+     * Menampilkan form edit paket.
+     */
+    public function edit(Tryout $tryout): Response
+    {
+        return Inertia::render('Admin/Tryouts/Edit', [
+            'tryout' => $tryout
+        ]);
+    }
+
+    /**
+     * Memperbarui data paket tryout.
+     */
     public function update(Request $request, Tryout $tryout)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
             'duration' => 'required|integer|min:1',
-            'is_free' => 'required|boolean',
-            'price' => 'required_if:is_free,false|numeric|min:0',
+            'type' => 'required|in:free,paid,grand',
+            'is_published' => 'required|boolean',
         ]);
 
         $tryout->update($validated);
 
-        return back()->with('message', 'Paket Tryout diperbarui!');
+        return redirect()->route('admin.tryouts.index')
+            ->with('message', 'Data paket berhasil diperbarui!');
     }
 
+    /**
+     * Menghapus paket tryout.
+     */
     public function destroy(Tryout $tryout)
     {
         $tryout->delete();
-        return back()->with('message', 'Paket Tryout dihapus!');
+
+        return redirect()->route('admin.tryouts.index')
+            ->with('message', 'Paket berhasil dihapus dari sistem.');
     }
 }

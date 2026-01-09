@@ -1,8 +1,5 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import TextInput from '@/Components/TextInput.vue';
 
 const form = useForm({
     name: '',
@@ -19,90 +16,121 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Daftar Akun" />
+    <Head title="Daftar Akun Baru" />
 
-    <div class="min-h-screen bg-slate-50 flex flex-col justify-center py-8 px-4 sm:px-6">
-        <div class="w-full max-w-[440px] mx-auto">
-            <div class="text-center mb-8">
-                <Link href="/" class="inline-flex items-center gap-2 mb-4">
-                    <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100">
-                        <span class="text-white font-black text-2xl">T</span>
+    <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4 lg:p-8">
+        <div class="w-full max-w-5xl bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden grid grid-cols-1 lg:grid-cols-2 border border-slate-100">
+            
+            <div class="bg-indigo-600 p-10 lg:p-16 text-white relative overflow-hidden flex flex-col justify-between min-h-[300px] lg:min-h-full order-last lg:order-first">
+                <div class="relative z-10">
+                    <Link href="/" class="text-2xl font-black italic tracking-tighter uppercase mb-10 block w-fit">
+                        CAT Premium<span class="text-indigo-300">.</span>
+                    </Link>
+                    <h2 class="text-4xl lg:text-5xl font-black italic tracking-tighter leading-none mb-4">
+                        Mulai Perjalanan ASN Anda.
+                    </h2>
+                    <p class="text-indigo-200 text-sm lg:text-base font-medium max-w-sm leading-relaxed">
+                        Bergabunglah dengan ribuan peserta lain yang menggunakan platform premium kami untuk menaklukkan passing grade.
+                    </p>
+                </div>
+                
+                <div class="relative z-10 mt-10 lg:mt-0 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">✅</div>
+                        <p class="text-xs font-black uppercase tracking-wider">Akses Tryout Gratis</p>
                     </div>
-                </Link>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Daftar Akun</h2>
-                <p class="text-slate-500 mt-2 font-medium">Gratis akses ribuan soal latihan</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">📊</div>
+                        <p class="text-xs font-black uppercase tracking-wider">Analisis Radar & Ranking</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">💡</div>
+                        <p class="text-xs font-black uppercase tracking-wider">Pembahasan HOTS Lengkap</p>
+                    </div>
+                </div>
+
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-[100px]"></div>
+                <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-900/30 rounded-full blur-[100px]"></div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white">
-                <form @submit.prevent="submit" class="space-y-6">
+            <div class="p-10 lg:p-16 flex flex-col justify-center bg-white">
+                <h3 class="text-2xl font-black text-slate-900 uppercase italic tracking-tighter mb-8 text-center lg:text-left">
+                    Buat Akun Baru
+                </h3>
+
+                <form @submit.prevent="submit" class="space-y-4">
                     <div>
-                        <InputLabel for="name" value="Nama Lengkap" class="text-xs uppercase tracking-widest font-bold text-slate-400 ml-1" />
-                        <TextInput
-                            id="name"
-                            v-model="form.name"
-                            type="text"
-                            class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                            placeholder="John Doe"
-                            required
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Nama Lengkap</label>
+                        <input 
+                            id="name" 
+                            type="text" 
+                            v-model="form.name" 
+                            required 
+                            autofocus
+                            class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
+                            placeholder="Masukkan nama Anda"
                         />
-                        <InputError class="mt-2" :message="form.errors.name" />
+                        <p v-if="form.errors.name" class="text-rose-500 text-[10px] font-bold mt-2 ml-3">{{ form.errors.name }}</p>
                     </div>
 
                     <div>
-                        <InputLabel for="email" value="Alamat Email" class="text-xs uppercase tracking-widest font-bold text-slate-400 ml-1" />
-                        <TextInput
-                            id="email"
-                            v-model="form.email"
-                            type="email"
-                            class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                            placeholder="name@email.com"
-                            required
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Email Address</label>
+                        <input 
+                            id="email" 
+                            type="email" 
+                            v-model="form.email" 
+                            required 
+                            class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
+                            placeholder="nama@email.com"
                         />
-                        <InputError class="mt-2" :message="form.errors.email" />
+                        <p v-if="form.errors.email" class="text-rose-500 text-[10px] font-bold mt-2 ml-3">{{ form.errors.email }}</p>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6">
-                        <div>
-                            <InputLabel for="password" value="Password" class="text-xs uppercase tracking-widest font-bold text-slate-400 ml-1" />
-                            <TextInput
-                                id="password"
-                                v-model="form.password"
-                                type="password"
-                                class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <InputLabel for="password_confirmation" value="Ulangi Password" class="text-xs uppercase tracking-widest font-bold text-slate-400 ml-1" />
-                            <TextInput
-                                id="password_confirmation"
-                                v-model="form.password_confirmation"
-                                type="password"
-                                class="mt-2 block w-full !bg-slate-50 !border-transparent !rounded-2xl focus:!bg-white focus:!ring-4 focus:!ring-indigo-100 transition-all py-4 px-5"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Password</label>
+                        <input 
+                            id="password" 
+                            type="password" 
+                            v-model="form.password" 
+                            required 
+                            class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
+                            placeholder="Minimal 8 karakter"
+                        />
+                        <p v-if="form.errors.password" class="text-rose-500 text-[10px] font-bold mt-2 ml-3">{{ form.errors.password }}</p>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Konfirmasi Password</label>
+                        <input 
+                            id="password_confirmation" 
+                            type="password" 
+                            v-model="form.password_confirmation" 
+                            required 
+                            class="w-full bg-slate-50 border-none rounded-3xl p-5 font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-300"
+                            placeholder="Ulangi password"
+                        />
+                        <p v-if="form.errors.password_confirmation" class="text-rose-500 text-[10px] font-bold mt-2 ml-3">{{ form.errors.password_confirmation }}</p>
                     </div>
 
                     <div class="pt-4">
                         <button 
                             type="submit" 
                             :disabled="form.processing"
-                            class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50"
+                            class="w-full bg-indigo-600 text-white py-5 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-70"
                         >
-                            Buat Akun Sekarang
+                            {{ form.processing ? 'Mendaftarkan...' : 'Mulai Sekarang' }}
                         </button>
                     </div>
-                </form>
 
-                <div class="mt-10 text-center">
-                    <p class="text-slate-500 text-sm">
-                        Sudah punya akun? 
-                        <Link :href="route('login')" class="text-indigo-600 font-bold hover:underline">Masuk</Link>
-                    </p>
-                </div>
+                    <div class="text-center mt-8">
+                        <p class="text-sm font-bold text-slate-500">
+                            Sudah punya akun? 
+                            <Link :href="route('login')" class="text-indigo-600 font-black uppercase tracking-wider hover:underline ml-1">
+                                Masuk disini
+                            </Link>
+                        </p>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

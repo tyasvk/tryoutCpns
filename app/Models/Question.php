@@ -14,20 +14,21 @@ class Question extends Model
      */
     protected $fillable = [
         'tryout_id',
-        'content',
-        'type',
-        'option_a',
-        'option_b',
-        'option_c',
-        'option_d',
-        'option_e',
-        'point_a', // Poin TKP
-        'point_b',
-        'point_c',
-        'point_d',
-        'point_e',
-        'answer',      // Kunci Jawaban
-        'explanation', // Pembahasan
+    'subject',
+    'content', // Ubah dari question_text ke content
+    'image',   // Gunakan 'image' sesuai error log Anda (bukan image_path)
+    'option_a',
+    'option_b',
+    'option_c',
+    'option_d',
+    'option_e',
+    'correct_answer',
+    'explanation',
+    'points_a',
+    'points_b',
+    'points_c',
+    'points_d',
+    'points_e',
     ];
 
     /**

@@ -10,18 +10,20 @@ use App\Models\Question;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        // Ini me-render tampilan yang berbeda jika Anda memisahkan file Vue-nya
-        // Misalnya: resources/js/Pages/Admin/Dashboard.vue
-        return Inertia::render('Admin/Dashboard', [
-            'stats' => [
-                'total_users' => User::count(),
-                'total_admin' => User::where('is_admin', true)->count(),
-                'total_questions' => Question::count(),
-            ],
-            // Mengambil 10 user terbaru
-            'users' => User::latest()->take(10)->get()
-        ]);
-    }
+   public function index()
+{
+    return Inertia::render('Admin/Dashboard', [
+        'stats' => [
+            'total_users'   => \App\Models\User::where('is_admin', false)->count(),
+            'total_tryouts' => \App\Models\Tryout::count(),
+            'total_exams'   => \App\Models\Exam::count(),
+            'passed_today'  => \App\Models\Exam::where('is_passed', true)
+                                ->whereDate('completed_at', now())->count(),
+        ],
+        'recent_exams' => \App\Models\Exam::with(['user', 'tryout'])
+                            ->latest()
+                            ->take(5)
+                            ->get()
+    ]);
+}
 }

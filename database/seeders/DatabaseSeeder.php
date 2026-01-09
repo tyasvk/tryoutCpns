@@ -8,20 +8,35 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
-        // Gunakan firstOrCreate agar jika email sudah ada, sistem tidak akan error
+        // ---------------------------------------------------
+        // 1. AKUN ADMIN (Untuk Kelola Soal)
+        // ---------------------------------------------------
         User::firstOrCreate(
-            ['email' => 'admin@example.com'], // Cek berdasarkan email
+            ['email' => 'admin@tryout.com'], // Kunci pengecekan (agar tidak duplikat)
             [
-                'name' => 'Administrator',
-                'password' => Hash::make('password'),
-                'is_admin' => true,
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'), // Password default
+                'is_admin' => true, // Menandakan dia admin
                 'email_verified_at' => now(),
             ]
         );
 
-        // Hapus baris ini jika menyebabkan konflik dengan "test@example.com" bawaan Laravel
-        // User::factory(10)->create(); 
+        // ---------------------------------------------------
+        // 2. AKUN PESERTA (Untuk Testing Ujian)
+        // ---------------------------------------------------
+        User::firstOrCreate(
+            ['email' => 'peserta@tryout.com'],
+            [
+                'name' => 'Peserta CPNS',
+                'password' => Hash::make('password'),
+                'is_admin' => false,
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

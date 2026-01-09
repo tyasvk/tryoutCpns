@@ -4,38 +4,70 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Exam;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    // 1. Daftar Semua User
+    public function index(Request $request)
     {
+        $users = User::where('is_admin', false) // Hanya user biasa
+            ->when($request->search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Admin/Users/Index', [
-            'users' => User::select('id', 'name', 'email', 'is_admin', 'created_at')
-                ->latest()
-                ->get()
+            'users' => $users,
+            'filters' => $request->only(['search'])
         ]);
     }
 
-    public function toggleAdmin(User $user)
+    // 2. Lihat Detail & Riwayat Ujian User
+    public function show(User $user)
     {
-        // Mencegah user mencopot akses admin dirinya sendiri
-        if (auth()->id() === $user->id) {
-            return back()->with('error', 'Anda tidak bisa mengubah status admin sendiri.');
-        }
+        $exams = Exam::with('tryout')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
 
-        $user->update(['is_admin' => !$user->is_admin]);
-        return back();
+        return Inertia::render('Admin/Users/Show', [
+            'user' => $user,
+            'exams' => $exams
+        ]);
     }
 
-    public function destroy(User $user)
+    // 3. Update Data User
+    public function update(Request $request, User $user)
     {
-        if (auth()->id() === $user->id) {
-            return back()->with('error', 'Anda tidak bisa menghapus akun sendiri.');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            // Password opsional jika ingin admin bisa reset password
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        if ($request->filled('password')) {
+            $validated['password'] = bcrypt($request->password);
+        } else {
+            unset($validated['password']);
         }
 
+        $user->update($validated);
+
+        return back()->with('message', 'Data user berhasil diperbarui.');
+    }
+
+    // 4. Hapus User
+    public function destroy(User $user)
+    {
+        // Opsional: Hapus juga riwayat ujiannya jika perlu
         $user->delete();
-        return back();
+        return redirect()->route('admin.users.index')->with('message', 'User berhasil dihapus.');
     }
 }

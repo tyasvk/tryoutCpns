@@ -1,94 +1,97 @@
 <script setup>
-import { ref } from 'vue';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     stats: Object,
-    users: Array
+    recent_exams: Array
 });
 
-const isSidebarOpen = ref(false);
+const today = new Date().toLocaleDateString('id-ID', { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+});
 </script>
 
 <template>
-    <Head title="Admin Dashboard" />
+    <Head title="Admin Dashboard - CPNS Nusantara" />
 
-    <div class="min-h-screen bg-slate-50 flex">
-        <aside :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
-               class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0">
-            <div class="p-6 flex items-center gap-3">
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-bold">T</div>
-                <span class="text-xl font-bold tracking-tight text-white">Admin<span class="text-indigo-400">CPNS</span></span>
+    <AuthenticatedLayout>
+        <div class="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+            
+            <div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 animate-in fade-in slide-in-from-top duration-700">
+                <div>
+                    <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.4em] mb-2 italic">Control Center</p>
+                    <h1 class="text-5xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">Overview</h1>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ today }}</p>
+                </div>
             </div>
 
-            <nav class="mt-6 px-4 space-y-2">
-                <Link :href="route('admin.dashboard')" class="flex items-center gap-3 px-4 py-3 bg-indigo-600 rounded-xl text-sm font-bold">
-                    <span>📊 Dashboard</span>
-                </Link>
-                <Link href="#" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition text-sm">
-                    <span>📝 Kelola Soal</span>
-                </Link>
-                <Link href="#" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition text-sm">
-                    <span>👥 Pengguna</span>
-                </Link>
-            </nav>
-        </aside>
-
-        <div v-if="isSidebarOpen" @click="isSidebarOpen = false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
-
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <header class="bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between">
-                <button @click="isSidebarOpen = true" class="p-2 lg:hidden text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <h1 class="text-lg font-bold text-slate-800 lg:ml-4">Overview</h1>
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-medium text-slate-500 hidden sm:block">{{ $page.props.auth.user.name }}</span>
-                    <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300"></div>
-                </div>
-            </header>
-
-            <main class="p-4 sm:p-6 overflow-y-auto">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Peserta</p>
-                        <h3 class="text-3xl font-black text-slate-900 mt-2">{{ stats.total_users }}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-slate-200 relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Peserta Terdaftar</p>
+                        <h3 class="text-4xl font-black italic">{{ stats.total_users }}</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">User Baru (7 Hari)</p>
-                        <h3 class="text-3xl font-black text-indigo-600 mt-2">{{ stats.new_users }}</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Admin Aktif</p>
-                        <h3 class="text-3xl font-black text-slate-900 mt-2">{{ stats.total_admin }}</h3>
-                    </div>
+                    <span class="absolute -right-4 -bottom-4 text-7xl opacity-10 group-hover:scale-110 transition-transform duration-500">👥</span>
                 </div>
 
-                <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                        <h3 class="font-bold text-slate-800">Pendaftar Terbaru</h3>
-                        <button class="text-xs font-bold text-indigo-600">Lihat Semua</button>
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Paket Soal Aktif</p>
+                        <h3 class="text-4xl font-black italic text-slate-900">{{ stats.total_tryouts }}</h3>
                     </div>
+                    <span class="absolute -right-4 -bottom-4 text-7xl opacity-5 group-hover:scale-110 transition-transform duration-500">📝</span>
+                </div>
+
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Simulasi</p>
+                        <h3 class="text-4xl font-black italic text-slate-900">{{ stats.total_exams }}</h3>
+                    </div>
+                    <span class="absolute -right-4 -bottom-4 text-7xl opacity-5 group-hover:scale-110 transition-transform duration-500">⚡</span>
+                </div>
+
+                <div class="bg-indigo-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100 relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <p class="text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-1">Lulus Hari Ini</p>
+                        <h3 class="text-4xl font-black italic">{{ stats.passed_today }}</h3>
+                    </div>
+                    <span class="absolute -right-4 -bottom-4 text-7xl opacity-20 group-hover:scale-110 transition-transform duration-500">🎯</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-8 bg-white rounded-[3rem] border border-slate-200 shadow-sm overflow-hidden p-8 lg:p-12">
+                    <div class="flex justify-between items-center mb-10">
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Aktivitas Ujian Terbaru</h4>
+                        <Link :href="route('admin.tryouts.index')" class="text-[9px] font-black text-indigo-600 uppercase tracking-widest border-b-2 border-indigo-100 pb-1">Lihat Semua</Link>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-50">
-                                <tr>
-                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Nama</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest hidden sm:table-cell">Email</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Role</th>
+                            <thead>
+                                <tr class="text-[9px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-50">
+                                    <th class="pb-4">Peserta</th>
+                                    <th class="pb-4">Paket</th>
+                                    <th class="pb-4 text-center">Skor</th>
+                                    <th class="pb-4 text-right">Status</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr v-for="user in users" :key="user.id" class="hover:bg-slate-50/50">
-                                    <td class="px-6 py-4">
-                                        <div class="font-bold text-slate-700 text-sm">{{ user.name }}</div>
-                                        <div class="text-[10px] text-slate-400 sm:hidden">{{ user.email }}</div>
+                            <tbody class="divide-y divide-slate-50">
+                                <tr v-for="exam in recent_exams" :key="exam.id" class="group transition-all">
+                                    <td class="py-5">
+                                        <p class="text-xs font-black text-slate-800 uppercase italic">{{ exam.user?.name }}</p>
+                                        <p class="text-[9px] text-slate-400 font-medium">{{ exam.user?.email }}</p>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-slate-600 hidden sm:table-cell">{{ user.email }}</td>
-                                    <td class="px-6 py-4">
-                                        <span :class="user.is_admin ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-600'" 
-                                              class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter">
-                                            {{ user.is_admin ? 'Admin' : 'Peserta' }}
+                                    <td class="py-5 text-[10px] font-bold text-slate-600">{{ exam.tryout?.name }}</td>
+                                    <td class="py-5 text-center font-black text-xs">{{ exam.total_score }}</td>
+                                    <td class="py-5 text-right">
+                                        <span :class="exam.is_passed ? 'text-emerald-500 bg-emerald-50 border-emerald-100' : 'text-rose-500 bg-rose-50 border-rose-100'"
+                                              class="px-3 py-1 rounded-lg text-[8px] font-black uppercase border italic">
+                                            {{ exam.is_passed ? 'Lulus' : 'Gagal' }}
                                         </span>
                                     </td>
                                 </tr>
@@ -96,7 +99,42 @@ const isSidebarOpen = ref(false);
                         </table>
                     </div>
                 </div>
-            </main>
+
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-indigo-50 p-10 rounded-[3rem] border border-indigo-100 relative overflow-hidden group">
+                        <h4 class="text-[10px] font-black text-indigo-900 uppercase tracking-widest mb-6 relative z-10">Aksi Cepat</h4>
+                        <div class="space-y-3 relative z-10">
+                            <Link :href="route('admin.tryouts.create')" class="flex items-center justify-between w-full bg-white p-5 rounded-2xl shadow-sm hover:bg-slate-900 hover:text-white transition-all group">
+                                <span class="text-[10px] font-black uppercase tracking-widest">Buat Paket Baru</span>
+                                <span class="text-lg">→</span>
+                            </Link>
+                            <Link :href="route('admin.users.index')" class="flex items-center justify-between w-full bg-white p-5 rounded-2xl shadow-sm hover:bg-slate-900 hover:text-white transition-all">
+                                <span class="text-[10px] font-black uppercase tracking-widest">Kelola Peserta</span>
+                                <span class="text-lg">→</span>
+                            </Link>
+                        </div>
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-200/20 rounded-full blur-3xl"></div>
+                    </div>
+
+                    <div class="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm italic">
+                        <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-4">💡 Insight</p>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                            Rata-rata kelulusan hari ini naik <span class="text-emerald-500 font-black">12%</span>. Pastikan bank soal diperbarui setiap minggu untuk variasi materi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.4em]">CPNS Nusantara Engine v1.0.4</p>
+            </div>
         </div>
-    </div>
+    </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.animate-in {
+    animation-duration: 0.7s;
+    animation-fill-mode: both;
+}
+</style>
