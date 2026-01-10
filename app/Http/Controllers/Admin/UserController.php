@@ -4,70 +4,54 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Exam;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    // 1. Daftar Semua User
     public function index(Request $request)
     {
-        $users = User::where('is_admin', false) // Hanya user biasa
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+        $query = User::query();
 
-        return Inertia::render('Admin/Users/Index', [
-            'users' => $users,
-            'filters' => $request->only(['search'])
-        ]);
-    }
-
-    // 2. Lihat Detail & Riwayat Ujian User
-    public function show(User $user)
-    {
-        $exams = Exam::with('tryout')
-            ->where('user_id', $user->id)
-            ->latest()
-            ->get();
-
-        return Inertia::render('Admin/Users/Show', [
-            'user' => $user,
-            'exams' => $exams
-        ]);
-    }
-
-    // 3. Update Data User
-    public function update(Request $request, User $user)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            // Password opsional jika ingin admin bisa reset password
-            'password' => 'nullable|min:8|confirmed',
-        ]);
-
-        if ($request->filled('password')) {
-            $validated['password'] = bcrypt($request->password);
-        } else {
-            unset($validated['password']);
+        // Fitur Pencarian
+        if ($request->search) {
+            $query->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
         }
 
-        $user->update($validated);
-
-        return back()->with('message', 'Data user berhasil diperbarui.');
+        return Inertia::render('Admin/Users/Index', [
+            'users' => $query->withCount('exams')->latest()->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search']),
+            'stats' => [
+                'total_users' => User::count(),
+                'total_admins' => User::where('is_admin', true)->count(),
+                'new_today' => User::whereDate('created_at', today())->count(),
+            ]
+        ]);
     }
 
-    // 4. Hapus User
+    // PERBAIKAN: Menambahkan simbol $ pada $user
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'is_admin' => 'required|boolean',
+        ]);
+
+        $user->update($data);
+
+        return redirect()->back()->with('success', 'Data user berhasil diperbarui');
+    }
+
+    // PERBAIKAN: Menambahkan simbol $ pada $user
     public function destroy(User $user)
     {
-        // Opsional: Hapus juga riwayat ujiannya jika perlu
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'Anda tidak bisa menghapus akun sendiri');
+        }
+
         $user->delete();
-        return redirect()->route('admin.users.index')->with('message', 'User berhasil dihapus.');
+        return redirect()->back()->with('success', 'User berhasil dihapus');
     }
 }

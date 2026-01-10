@@ -1,151 +1,140 @@
 <script setup>
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { Head, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     exam: Object,
-    questions: Array
+    tryout: Object,
+    questions: Array,
 });
 
-// State Management
+// State Jawaban
+const form = useForm({
+    answers: props.exam.answers || {},
+});
+
+// State Navigasi Soal
 const currentIndex = ref(0);
-const selectedAnswers = ref({}); // Format: { question_id: 'A' }
-const timeLeft = ref(props.exam.tryout.duration * 60);
+const currentQuestion = computed(() => props.questions[currentIndex.value]);
 
-// Timer Logic
+// === LOGIKA TIMER OTOMATIS ===
+const timeLeft = ref('');
+const timePercentage = ref(100);
+let timerInterval = null;
+
+const calculateTime = () => {
+    const duration = 100 * 60 * 1000; // 100 Menit dalam milidetik
+    const startTime = new Date(props.exam.started_at).getTime();
+    const endTime = startTime + duration;
+    const now = new Date().getTime();
+    const diff = endTime - now;
+
+    if (diff <= 0) {
+        clearInterval(timerInterval);
+        submitExam(); // Otomatis submit jika waktu habis
+        return;
+    }
+
+    // Hitung Persentase untuk Progress Bar
+    timePercentage.value = (diff / duration) * 100;
+
+    // Format HH:MM:SS
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    timeLeft.value = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+};
+
+const submitExam = () => {
+    form.post(route('exam.submit', props.exam.id), {
+        onBefore: () => confirm('Waktu habis atau Anda yakin ingin mengakhiri ujian?'),
+    });
+};
+
 onMounted(() => {
-    const timer = setInterval(() => {
-        if (timeLeft.value > 0) {
-            timeLeft.value--;
-        } else {
-            clearInterval(timer);
-            submitExam(); // Auto-submit jika waktu habis
-        }
-    }, 1000);
+    calculateTime();
+    timerInterval = setInterval(calculateTime, 1000);
 });
 
-const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-};
+onUnmounted(() => {
+    clearInterval(timerInterval);
+});
 
-// Navigation
-const currentQuestion = computed(() => props.questions[currentIndex.value]);
-const goTo = (index) => { currentIndex.value = index; };
-
-// Progress
-const answeredCount = computed(() => Object.keys(selectedAnswers.value).length);
-
-// Submit Exam
-const submitExam = () => {
-    if (confirm('Yakin ingin mengakhiri ujian? Pastikan semua jawaban tersimpan.')) {
-        router.post(route('exam.submit', props.exam.id), {
-            answers: selectedAnswers.value
-        });
-    }
-};
+// Navigasi Soal
+const nextQuestion = () => { if (currentIndex.value < props.questions.length - 1) currentIndex.value++; };
+const prevQuestion = () => { if (currentIndex.value > 0) currentIndex.value--; };
+const jumpTo = (index) => { currentIndex.value = index; };
 </script>
 
 <template>
     <Head title="Simulasi CAT - CPNS Nusantara" />
 
-    <div class="min-h-screen bg-slate-50 flex flex-col">
+    <div class="min-h-screen bg-slate-50 font-sans text-slate-900 pb-32">
         
-        <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200 px-6 py-4">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <span class="text-sm font-black italic uppercase tracking-tighter hidden md:block">CPNS Nusantara<span class="text-indigo-600">.</span></span>
-                    <div class="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-black tracking-widest flex items-center gap-2">
-                        <span class="animate-pulse">⏱️</span> {{ formatTime(timeLeft) }}
-                    </div>
+        <div class="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
+            <div class="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">
+                <div>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Sisa Waktu</p>
+                    <p class="text-2xl font-black text-slate-900 tabular-nums leading-none">{{ timeLeft }}</p>
                 </div>
-                
-                <div class="flex items-center gap-3">
-                    <div class="hidden md:block text-right">
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Progress</p>
-                        <p class="text-xs font-black text-slate-900 uppercase italic">{{ answeredCount }} / {{ questions.length }} Terjawab</p>
-                    </div>
-                    <button @click="submitExam" class="bg-rose-600 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-100">
-                        Selesai Ujian
-                    </button>
-                </div>
+                <button @click="submitExam" class="bg-rose-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-100">
+                    Selesai
+                </button>
             </div>
-        </header>
+            <div class="w-full h-1 bg-slate-100">
+                <div class="h-full bg-indigo-600 transition-all duration-1000" :style="{ width: timePercentage + '%' }"></div>
+            </div>
+        </div>
 
-        <main class="flex-1 max-w-7xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 p-6">
+        <main class="max-w-5xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <div class="lg:col-span-8 space-y-6">
-                <div class="bg-white rounded-[2.5rem] p-8 lg:p-12 shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-8">
-                        <span class="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-indigo-100">
-                            {{ currentQuestion.subject }}
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-8 lg:p-12 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-8">
+                        <span class="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                            Soal {{ currentIndex + 1 }} dari {{ questions.length }}
                         </span>
-                        <span class="text-xs font-black text-slate-300 italic uppercase tracking-widest">Soal No. {{ currentIndex + 1 }}</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ currentQuestion.subject }}</span>
                     </div>
-                    
-                    <h2 class="text-lg lg:text-xl font-bold text-slate-800 leading-relaxed mb-10">
-                        {{ currentQuestion.question_text }}
-                    </h2>
+
+                    <p class="text-base lg:text-lg font-bold leading-relaxed mb-10 text-slate-800">
+                        {{ currentQuestion.content }}
+                    </p>
 
                     <div class="space-y-3">
-                        <button 
-                            v-for="opt in ['a', 'b', 'c', 'd', 'e']" :key="opt"
-                            @click="selectedAnswers[currentQuestion.id] = opt.toUpperCase()"
-                            :class="[
-                                selectedAnswers[currentQuestion.id] === opt.toUpperCase() 
-                                ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-100' 
-                                : 'border-slate-100 bg-slate-50 hover:border-slate-300'
-                            ]"
-                            class="w-full text-left p-5 rounded-2xl border-2 transition-all flex items-center gap-4 group"
-                        >
-                            <span :class="selectedAnswers[currentQuestion.id] === opt.toUpperCase() ? 'bg-indigo-600 text-white' : 'bg-white text-slate-400 border border-slate-200'" 
-                                  class="w-8 h-8 flex items-center justify-center rounded-lg font-black text-xs uppercase transition-colors">
+                        <button v-for="opt in ['A', 'B', 'C', 'D', 'E']" :key="opt"
+                            @click="form.answers[currentQuestion.id] = opt"
+                            :class="form.answers[currentQuestion.id] === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-600' : 'border-slate-100 bg-slate-50 text-slate-600'"
+                            class="w-full flex items-center p-5 rounded-2xl border-2 text-left transition-all group">
+                            <div :class="form.answers[currentQuestion.id] === opt ? 'bg-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-400'"
+                                class="w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs mr-4 border shrink-0">
                                 {{ opt }}
-                            </span>
-                            <p class="flex-1 text-sm font-bold text-slate-700">{{ currentQuestion['option_' + opt] }}</p>
+                            </div>
+                            <span class="text-xs lg:text-sm font-bold">{{ currentQuestion['option_' + opt.toLowerCase()] }}</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center px-2">
-                    <button @click="currentIndex--" :disabled="currentIndex === 0" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 disabled:opacity-30">
-                        ← Sebelumnya
-                    </button>
-                    <button @click="currentIndex++" :disabled="currentIndex === questions.length - 1" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 hover:text-indigo-600 disabled:opacity-30">
-                        Selanjutnya →
-                    </button>
+                    <button @click="prevQuestion" :disabled="currentIndex === 0" class="text-[10px] font-black uppercase text-slate-400 disabled:opacity-20">← Sebelumnya</button>
+                    <button @click="nextQuestion" :disabled="currentIndex === questions.length - 1" class="text-[10px] font-black uppercase text-indigo-600">Selanjutnya →</button>
                 </div>
             </div>
 
-            <div class="lg:col-span-4 space-y-6">
-                <div class="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm sticky top-28">
-                    <h3 class="text-xs font-black text-slate-900 uppercase italic tracking-widest mb-6 px-1">Navigasi Soal</h3>
-                    
+            <div class="space-y-6">
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 px-1">Navigasi Soal</h3>
                     <div class="grid grid-cols-5 gap-2">
-                        <button 
-                            v-for="(q, idx) in questions" :key="q.id"
-                            @click="goTo(idx)"
+                        <button v-for="(q, idx) in questions" :key="q.id"
+                            @click="jumpTo(idx)"
                             :class="[
-                                currentIndex === idx ? 'ring-2 ring-indigo-600 ring-offset-2 scale-110 z-10' : '',
-                                selectedAnswers[q.id] ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-300'
+                                currentIndex === idx ? 'ring-2 ring-indigo-600 ring-offset-2' : '',
+                                form.answers[q.id] ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
                             ]"
-                            class="aspect-square flex items-center justify-center rounded-xl border text-[10px] font-black transition-all"
-                        >
+                            class="w-full aspect-square rounded-xl flex items-center justify-center text-[10px] font-black transition-all">
                             {{ idx + 1 }}
                         </button>
-                    </div>
-
-                    <div class="mt-8 pt-6 border-t border-slate-50 flex justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-slate-900 rounded-sm"></div>
-                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">Terjawab</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-slate-50 border border-slate-200 rounded-sm"></div>
-                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">Belum</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -155,12 +144,8 @@ const submitExam = () => {
 </template>
 
 <style scoped>
-/* Transisi Smooth */
-.bg-white { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-button:active { transform: scale(0.98); }
-
-/* Custom Scrollbar untuk Navigator jika banyak soal */
-.grid { max-height: 400px; overflow-y: auto; padding-right: 4px; }
-.grid::-webkit-scrollbar { width: 4px; }
-.grid::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+/* Tabular nums agar angka timer tidak goyang saat berubah */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
 </style>

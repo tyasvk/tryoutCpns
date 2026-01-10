@@ -39,6 +39,13 @@ class HandleInertiaRequests extends Middleware
                     'is_admin' => (bool) $request->user()->is_admin,
                 ] : null,
             ],
+
+            // Tambahkan ini:
+        'site_settings' => [
+            'announcement' => \App\Models\Setting::where('key', 'announcement')->value('value'),
+            'is_to_akbar_active' => \App\Models\Setting::where('key', 'is_to_akbar_active')->value('value'),
+            'grand_to_start' => \App\Models\Setting::where('key', 'grand_to_start')->value('value'),
+        ],
             // Berbagi pesan flash (untuk notifikasi)
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
