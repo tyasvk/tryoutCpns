@@ -1,88 +1,82 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ExamController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
-use App\Http\Controllers\Admin\TryoutController as AdminTryout;
-use App\Http\Controllers\Admin\QuestionController as AdminQuestion;
-use App\Http\Controllers\Admin\UserController as AdminUser;
+use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\User\UserProfileController;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Models\Tryout;
-use App\Models\Exam;
 
-// --- PUBLIK ---
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// 1. Landing Page (Perbaikan Error "View not found")
+// Menggunakan Inertia::render untuk memanggil file resources/js/Pages/Welcome.vue
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
     ]);
 });
 
-// --- DASHBOARD REDIRECTOR ---
+// 2. Dashboard Redirect Logic
+// Mengarahkan user ke dashboard yang sesuai berdasarkan Role saat login
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user->is_admin) return redirect()->route('admin.dashboard');
-
-    return Inertia::render('Dashboard', [
-        'stats' => [
-            'twk' => (int) round(Exam::where('user_id', $user->id)->avg('score_twk') ?? 0),
-            'tiu' => (int) round(Exam::where('user_id', $user->id)->avg('score_tiu') ?? 0),
-            'tkp' => (int) round(Exam::where('user_id', $user->id)->avg('score_tkp') ?? 0),
-        ],
-        'totalExams' => Exam::where('user_id', $user->id)->where('status', 'completed')->count(),
-    ]);
+    $user = Auth::user();
+    
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    
+    return redirect()->route('user.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// --- AREA PESERTA (CPNS NUSANTARA) ---
-Route::middleware('auth')->group(function () {
+
+/*
+|--------------------------------------------------------------------------
+| GROUP: ADMIN
+|--------------------------------------------------------------------------
+| Middleware: auth (Login) & role:admin (Cek Role)
+*/
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    // Profile Akun
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Dashboard Admin
+    Route::get('/dashboard', function () {
+        return Inertia::render('Admin/Dashboard'); // Pastikan file Admin/Dashboard.vue ada
+    })->name('dashboard');
 
-    // Marketplace & Leaderboard
-    Route::get('/marketplace', function() {
-        return Inertia::render('Marketplace/Index', [
-            'tryouts' => Tryout::where('is_published', true)->withCount('questions')->get()
-        ]);
-    })->name('marketplace.index');
+    // Profile Admin (Inertia)
+    Route::get('/profile', [AdminProfileController::class, 'index'])->name('profile.index');
+    // Gunakan POST untuk update data + file upload di Inertia (Form method spoofing)
+    Route::post('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
 
-    // Analisis Progres
-    Route::get('/analysis', [ExamController::class, 'analysis'])->name('exam.analysis');
-
-    // Fitur Ujian CAT
-    Route::controller(ExamController::class)->group(function () {
-        Route::get('/tryout/{tryout}/wait', 'waitingRoom')->name('tryout.wait');
-        Route::get('/tryout/{tryout}/leaderboard', 'leaderboard')->name('tryout.leaderboard');
-        
-        Route::post('/exam/start', 'start')->name('exam.start');
-        Route::get('/exam/{exam}', 'show')->name('exam.show');
-        Route::post('/exam/{exam}/submit', 'submit')->name('exam.submit');
-        Route::get('/exam/{exam}/result', 'result')->name('exam.result');
-        Route::get('/exam/{exam}/review', 'review')->name('exam.review');
-        Route::get('/exam/{exam}/certificate', 'certificate')->name('exam.certificate');
-        Route::get('/exam-history', 'history')->name('exam.history');
-    });
 });
 
-// --- AREA ADMIN ---
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
-    Route::resource('tryouts', AdminTryout::class);
-    Route::resource('users', AdminUser::class);
-    
-    // Management Soal
-    Route::get('tryouts/{tryout}/questions', [AdminQuestion::class, 'manage'])->name('questions.manage');
-    Route::get('tryouts/{tryout}/questions/create', [AdminQuestion::class, 'create'])->name('questions.create');
-    Route::post('tryouts/{tryout}/questions', [AdminQuestion::class, 'store'])->name('questions.store');
-    Route::get('questions/{question}/edit', [AdminQuestion::class, 'edit'])->name('questions.edit');
-    Route::patch('questions/{question}', [AdminQuestion::class, 'update'])->name('questions.update');
-    Route::delete('questions/{question}', [AdminQuestion::class, 'destroy'])->name('questions.destroy');
 
-    Route::get('/settings', [App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [App\Http\Controllers\Admin\SettingController::class, 'update'])->name('settings.update');
+/*
+|--------------------------------------------------------------------------
+| GROUP: USER (PESERTA)
+|--------------------------------------------------------------------------
+| Middleware: auth (Login) & role:user (Cek Role)
+*/
+Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
+    
+    // Dashboard User
+    Route::get('/dashboard', function () {
+        return Inertia::render('User/Dashboard'); // Pastikan file User/Dashboard.vue ada
+    })->name('dashboard');
+
+    // Profile User (Inertia)
+    Route::get('/profile', [UserProfileController::class, 'index'])->name('profile.index');
+    Route::post('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+
 });
 
+// 3. Auth Routes (Bawaan Laravel Breeze/Inertia)
+// File ini menghandle login, register, logout, reset password
 require __DIR__.'/auth.php';

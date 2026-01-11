@@ -19,6 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+
+        // --- TAMBAHKAN BAGIAN INI ---
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class,
+        ]);
+        // ----------------------------
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
